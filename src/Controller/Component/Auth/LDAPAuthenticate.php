@@ -12,20 +12,19 @@
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
-App::uses('BaseAuthenticate', 'Controller/Component/Auth');
-App::uses('YalpUtility', 'YALP.Lib');
+use Cake\Auth\BaseAuthenticate;
+use YALP\Lib\YalpUtility;
 
 class LDAPAuthenticate extends BaseAuthenticate {
 
 	private $YALP;
 	
-/**
- * Constructor
- *
- * @param ComponentCollection $collection The Component collection used on this request.
- * @param array $settings Array of settings to use.
- */
-	
+	/**
+	 * Constructor
+	 *
+	 * @param ComponentCollection $collection The Component collection used on this request.
+	 * @param array $settings Array of settings to use.
+	 */
 	function __construct(ComponentCollection $collection, $settings = array()) {
 
 		$this->form_fields = Configure::read('LDAP.form_fields');
@@ -36,14 +35,13 @@ class LDAPAuthenticate extends BaseAuthenticate {
 		parent::__construct($collection, $settings);
 	}
 
-/**
- * Authentication hook to authenticate a user against an LDAP server.
- *
- * @param CakeRequest $request The request that contains login information.
- * @param CakeResponse $response Unused response object.
- * @return mixed. False on login failure. An array of User data on success.
- */
-	
+	/**
+	 * Authentication hook to authenticate a user against an LDAP server.
+	 *
+	 * @param CakeRequest $request The request that contains login information.
+	 * @param CakeResponse $response Unused response object.
+	 * @return mixed. False on login failure. An array of User data on success.
+	 */
 	public function authenticate(CakeRequest $request, CakeResponse $response) {
 		// This will probably be cn or an email field to search for
 		CakeLog::write('yalp', "[YALP.authenticate] Authentication started");

@@ -6,8 +6,8 @@ CakePHP plugin for LDAP Authentication.
 
 This Plugin has the following requirements:
 
-* CakePHP 2.2.0 or greater.
-* PHP 5.3.0 or greater.
+* CakePHP 3.0 or greater.
+* PHP 5.4.16 or greater.
 
 **It could be work on lower versions of CakePHP or PHP**
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ```
 * This plugin is designed to work exactly as CakePHP default auth component. 
 
-See: [CakePHP: Simple Authentication and Authorization Application](http://book.cakephp.org/2.0/en/tutorials-and-examples/blog-auth-example/auth.html)
+See: [CakePHP: Simple Authentication and Authorization Application](http://book.cakephp.org/3.0/en/tutorials-and-examples/blog-auth-example/auth.html)
 
 ### 2. Configure Auth in your AppController
 

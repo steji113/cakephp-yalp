@@ -12,8 +12,14 @@
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
-	App::uses('CakeLog', 'Log');
-	App::uses('PhpReader', 'Configure');
-	
+ 
+use Cake\Log\Log;
+use Cake\Core\Configure;
+use Cake\Core\Configure\Engine\PhpConfig;
+
+// Load the LDAP configuration
+try {
 	Configure::load('ldap');
-	
+} catch (\Exception $e) {
+    die($e->getMessage() . "\n");
+}
