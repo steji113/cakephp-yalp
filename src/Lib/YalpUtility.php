@@ -10,7 +10,12 @@
  * @author Jose Valecillos <valecillosjg@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
-class YalpUtility extends Object {
+ 
+namespace YALP\Lib;
+
+use Cake\Core\Configure;
+ 
+class YalpUtility {
 	var $server;
 	var $port;
 	var $user;
@@ -53,8 +58,6 @@ class YalpUtility extends Object {
 
 		$this->ldap_attribs = Configure::read('LDAP.ldap_attribs');
 		$this->ldap_attribs = (isset($settings['ldap_attribs'])) ? $settings['ldap_attribs'] : $this->ldap_attribs;
-
-		parent::__construct();
 	}
 
 	/**

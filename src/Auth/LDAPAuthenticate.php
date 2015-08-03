@@ -15,36 +15,40 @@
 namespace YALP\Auth;
 
 use Cake\Auth\BaseAuthenticate;
+use Cake\Controller\ComponentRegistry;
+use Cake\Core\Configure;
+use Cake\Network\Request;
+use Cake\Network\Response;
 use YALP\Lib\YalpUtility;
 
 class LDAPAuthenticate extends BaseAuthenticate {
 
 	private $YALP;
 	
-	/**
-	 * Constructor
-	 *
-	 * @param ComponentCollection $collection The Component collection used on this request.
-	 * @param array $settings Array of settings to use.
-	 */
-	function __construct(ComponentCollection $collection, $settings = array()) {
+    /**
+     * Constructor
+     *
+     * @param \Cake\Controller\ComponentRegistry $registry The Component registry used on this request.
+     * @param array $config Array of config to use.
+     */
+	function __construct(ComponentRegistry $registry, $config = array()) {
 
 		$this->form_fields = Configure::read('LDAP.form_fields');
-		$this->form_fields = (isset($settings['form_fields'])) ? $settings['form_fields'] : $this->form_fields;
+		$this->form_fields = (isset($config['form_fields'])) ? $config['form_fields'] : $this->form_fields;
 
-		$this->YALP = new YalpUtility($settings);
+		$this->YALP = new YalpUtility($config);
 
-		parent::__construct($collection, $settings);
+		parent::__construct($registry, $config);
 	}
 
 	/**
 	 * Authentication hook to authenticate a user against an LDAP server.
 	 *
-	 * @param CakeRequest $request The request that contains login information.
-	 * @param CakeResponse $response Unused response object.
-	 * @return mixed. False on login failure. An array of User data on success.
+     * @param \Cake\Network\Request $request The request that contains login information.
+     * @param \Cake\Network\Response $response Unused response object.
+     * @return mixed False on login failure.  An array of User data on success.
 	 */
-	public function authenticate(CakeRequest $request, CakeResponse $response) {
+	public function authenticate(Request $request, Response $response) {
 		// This will probably be cn or an email field to search for
 		CakeLog::write('yalp', "[YALP.authenticate] Authentication started");
 
@@ -52,7 +56,7 @@ class LDAPAuthenticate extends BaseAuthenticate {
 
 		$passField = $this->form_fields['password'];
 
-		$userModel = $this->settings['userModel'];
+		$userModel = $this->config['userModel'];
 		list($plugin, $model) = pluginSplit($userModel);
 
 		// Definitely not authenticated if we haven't got the request data...
