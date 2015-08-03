@@ -10,10 +10,10 @@
  * @author Jose Valecillos <valecillosjg@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
- 
-namespace YALP\Lib;
+namespace Yalp\Lib;
 
 use Cake\Core\Configure;
+use Cake\Log\Log;
  
 class YalpUtility {
 	var $server;
@@ -31,32 +31,31 @@ class YalpUtility {
 	 * @param array $settings Array of settings to use.
 	 */
 	function __construct($settings = array()) {
-
-		$this->server = Configure::read('LDAP.server');
+		$this->server = Configure::read('Ldap.server');
 		$this->server = (isset($settings['server'])) ? $settings['server'] : $this->server;
 
-		$this->port = Configure::read('LDAP.port');
+		$this->port = Configure::read('Ldap.port');
 		$this->port = (isset($settings['port'])) ? $settings['port'] : $this->port;
 
-		$this->user = Configure::read('LDAP.user');
+		$this->user = Configure::read('Ldap.user');
 		$this->user = (isset($settings['user'])) ? $settings['user'] : $this->user;
 
-		$this->password = Configure::read('LDAP.password');
+		$this->password = Configure::read('Ldap.password');
 		$this->password = (isset($settings['password'])) ? $settings['password'] : $this->password;
 
-		$this->base_dn = Configure::read('LDAP.base_dn');
+		$this->base_dn = Configure::read('Ldap.base_dn');
 		$this->base_dn = (isset($settings['base_dn'])) ? $settings['base_dn'] : $this->base_dn;
 
-		$this->user_filter = Configure::read('LDAP.user_filter');
+		$this->user_filter = Configure::read('Ldap.user_filter');
 		$this->user_filter = (isset($settings['user_filter'])) ? $settings['user_filter'] : $this->user_filter;
 
-		$this->user_wide_filter = Configure::read('LDAP.user_wide_filter');
+		$this->user_wide_filter = Configure::read('Ldap.user_wide_filter');
 		$this->user_wide_filter = (isset($settings['user_wide_filter'])) ? $settings['user_wide_filter'] : $this->user_wide_filter;
 
-		$this->group_filter = Configure::read('LDAP.group_filter');
+		$this->group_filter = Configure::read('Ldap.group_filter');
 		$this->group_filter = (isset($settings['group_filter'])) ? $settings['group_filter'] : $this->group_filter;
 
-		$this->ldap_attribs = Configure::read('LDAP.ldap_attribs');
+		$this->ldap_attribs = Configure::read('Ldap.ldap_attribs');
 		$this->ldap_attribs = (isset($settings['ldap_attribs'])) ? $settings['ldap_attribs'] : $this->ldap_attribs;
 	}
 
@@ -67,7 +66,6 @@ class YalpUtility {
 	 * @return LDAP connection as per ldap_connect()
 	 */
 	private function __ldapConnect() {
-
 		$ldapConnection = @ldap_connect($this->server, $this->port);
 
 		//these next two lines are required for windows server 03
@@ -95,7 +93,6 @@ class YalpUtility {
 	 * @return boolean TRUE on success or FALSE on failure.
 	 */
 	public function validateUser($username, $password)
-	{
 		// Get the user_filter setting and insert the username
 		$this->user_filter = preg_replace('/%USERNAME%/', $username, $this->user_filter);
 
@@ -107,13 +104,13 @@ class YalpUtility {
 
 		// Failed to find user details, not authenticated.
 		if (!$results || ldap_count_entries($ldapConnection, $results) == 0) {
-			CakeLog::write('yalp', "[YALPUtility->validateUser] Could not find user '$username' on LDAP");
+			Log::error("[YalpUtility->validateUser] Could not find user '$username' on LDAP", 'yalp');
 			return false;
 		}
 
 		// Got multiple results, sysadmin did something wrong!
 		if (ldap_count_entries($ldapConnection, $results) > 1) {
-			CakeLog::write('yalp', "[YALP.authenticate] Multiple LDAP results for $username");
+			Log::warning("[Yalp.authenticate] Multiple LDAP results for $username", 'yalp');
 			return false;
 		}
 
@@ -152,19 +149,19 @@ class YalpUtility {
 
 		// Failed to find users details, not authenticated.
 		if (!$results || ldap_count_entries($ldapConnection, $results) < 1) {
-			CakeLog::write('yalp', "[YALPUtility->getUsers] Could not find users with selected criteria");
+			Log::error("[YalpUtility->getUsers] Could not find users with selected criteria", 'yalp');
 			return false;
 		}
 
 		// Found the users! Get theirs details
 		$ldapUsers = ldap_get_entries($ldapConnection, $results);
 		// Parse array
-		$ldapUsers = $this->_parseLDAPArray($ldapUsers);
+		$ldapUsers = $this->_parseLdapArray($ldapUsers);
 
 		return $ldapUsers;
 	}
 
-	private function _parseLDAPArray($data)
+	private function _parseLdapArray($data)
 	{
 		if (isset($data) && !empty($data)) {
 			$result = array();

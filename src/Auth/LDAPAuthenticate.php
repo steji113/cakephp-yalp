@@ -12,33 +12,35 @@
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
-namespace YALP\Auth;
+namespace Yalp\Auth;
 
-use Cake\Auth\BaseAuthenticate;
-use Cake\Controller\ComponentRegistry;
 use Cake\Core\Configure;
+use Cake\Controller\ComponentRegistry;
+use Cake\Log\Log;
 use Cake\Network\Request;
 use Cake\Network\Response;
-use YALP\Lib\YalpUtility;
+use Cake\Auth\BaseAuthenticate;
+use Yalp\Lib\YalpUtility;
+use Cake\ORM\TableRegistry;
 
-class LDAPAuthenticate extends BaseAuthenticate {
+class LdapAuthenticate extends BaseAuthenticate {
 
-	private $YALP;
+	private $Yalp;
 	
-    /**
-     * Constructor
-     *
-     * @param \Cake\Controller\ComponentRegistry $registry The Component registry used on this request.
+	/**
+	 * Constructor
+	 *
+     * @param \Cake\Controller\ComponentRegistry $registry The Component registry
+     *   used on this request.
      * @param array $config Array of config to use.
-     */
-	function __construct(ComponentRegistry $registry, $config = array()) {
+	 */
+	function __construct(ComponentRegistry $collection, $settings = array()) {
+		$this->form_fields = Configure::read('Ldap.form_fields');
+		$this->form_fields = (isset($settings['form_fields'])) ? $settings['form_fields'] : $this->form_fields;
 
-		$this->form_fields = Configure::read('LDAP.form_fields');
-		$this->form_fields = (isset($config['form_fields'])) ? $config['form_fields'] : $this->form_fields;
+		$this->Yalp = new YalpUtility($settings);
 
-		$this->YALP = new YalpUtility($config);
-
-		parent::__construct($registry, $config);
+		parent::__construct($collection, $settings);
 	}
 
 	/**
@@ -50,18 +52,18 @@ class LDAPAuthenticate extends BaseAuthenticate {
 	 */
 	public function authenticate(Request $request, Response $response) {
 		// This will probably be cn or an email field to search for
-		CakeLog::write('yalp', "[YALP.authenticate] Authentication started");
+		Log::debug("[Yalp.authenticate] Authentication started", 'yalp');
 
 		$userField = $this->form_fields['username'];
 
 		$passField = $this->form_fields['password'];
 
-		$userModel = $this->config['userModel'];
+		$userModel = $this->config('userModel');
 		list($plugin, $model) = pluginSplit($userModel);
 
 		// Definitely not authenticated if we haven't got the request data...
 		if (!isset($request->data[$userModel])) {
-			CakeLog::write('yalp', "[YALP.authenticate] No request data, cannot authenticate");
+			Log::error("[Yalp.authenticate] No request data, cannot authenticate", 'yalp');
 			return false;
 		}
 
@@ -69,29 +71,30 @@ class LDAPAuthenticate extends BaseAuthenticate {
 		$submittedDetails = $request->data[$userModel];
 
 		if (!isset($submittedDetails[$userField])) {
-			CakeLog::write('yalp', "[YALP.authenticate] No username supplied, cannot authenticate");
+			//Log::write('yalp', "[Yalp.authenticate] No username supplied, cannot authenticate");
 			return false;
 		}
 
 		// Make sure it's a valid string...
 		$username = $submittedDetails[$userField];
 		if (!is_string($username)) {
-			CakeLog::write('yalp', "[YALP.authenticate] Invalid username, cannot authenticate");
+			Log::error("[Yalp.authenticate] Invalid username, cannot authenticate", 'yalp');
 			return false;
 		}
 
 		// Make sure they gave us a password too...
 		$password = $submittedDetails[$passField];
 		if (!is_string($password) || empty($password)) {
+			Log::error("[Yalp.authenticate] Invalid password, cannot authenticate", 'yalp');
 			return false;
 		}
 
 		// Check whether or not user exists on LDAP
-		if (! $this->YALP->validateUser($username, $password)) {
-			CakeLog::write('yalp', "[YALP.authenticate] User '$username' could not be find on LDAP");
+		if (!$this->Yalp->validateUser($username, $password)) {
+			Log::error("[Yalp.authenticate] User '$username' could not be found on LDAP", 'yalp');
 			return false;
 		} else {
-			CakeLog::write('yalp', "[YALP.authenticate] User '$username' were found on LDAP");
+			Log::debug("[Yalp.authenticate] User '$username' was found on LDAP", 'yalp');
 		}
 
 		// Check on DB
@@ -101,22 +104,18 @@ class LDAPAuthenticate extends BaseAuthenticate {
 			$comparison => strtolower($username),
 			);
 
-		$dbUser = ClassRegistry::init($userModel)->find('first', array(
+		$dbUser = TableRegistry::get($userModel)->find('all', array(
 			'conditions' => $conditions,
 			'recursive'	=> false
-			));
-
+			))->first();
+			
 		// If we couldn't find them in the database, create a new DB entry
-		if (empty($dbUser) || empty($dbUser[$model])) {
-			CakeLog::write('yalp', "[YALP.authenticate] Could not find a database entry for $username");
-			return false;
+		if (empty($dbUser)) {
+			Log::warning("[Yalp.authenticate] Could not find a database entry for $username", 'yalp');
 		}
 
-		// Ensure there's nothing in the password field
-		unset($dbUser[$model][$passField]);
-
 		// ...and return the user object.
-		return $dbUser[$model];
+		return $dbUser->toArray();
 	}
 
 }
