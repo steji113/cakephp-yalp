@@ -12,6 +12,8 @@
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
+namespace YALP\Auth;
+
 use Cake\Auth\BaseAuthenticate;
 use YALP\Lib\YalpUtility;
 
