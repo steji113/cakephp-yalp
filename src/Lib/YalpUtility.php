@@ -92,7 +92,7 @@ class YalpUtility {
 	 * @param string $password The password
 	 * @return boolean TRUE on success or FALSE on failure.
 	 */
-	public function validateUser($username, $password)
+	public function validateUser($username, $password) {
 		// Get the user_filter setting and insert the username
 		$this->user_filter = preg_replace('/%USERNAME%/', $username, $this->user_filter);
 
