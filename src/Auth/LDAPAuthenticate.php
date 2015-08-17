@@ -109,9 +109,10 @@ class LdapAuthenticate extends BaseAuthenticate {
 			'recursive'	=> false
 			))->first();
 			
-		// If we couldn't find them in the database, create a new DB entry
+		// If we couldn't find them in the database, warn and fail
 		if (empty($dbUser)) {
 			Log::warning("[Yalp.authenticate] Could not find a database entry for $username", 'yalp');
+			return false;
 		}
 
 		// ...and return the user object.
